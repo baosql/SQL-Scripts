@@ -1,0 +1,29 @@
+-- Check MAXDOP and Cost Threshold for Parallelism
+SELECT 
+    name AS [Configuration Name],
+    value AS [Configured Value],
+    value_in_use AS [Value In Use],
+    description
+FROM sys.configurations
+WHERE name IN ('max degree of parallelism', 'cost threshold for parallelism');
+
+-- Check the number of TempDB files
+USE tempdb;
+GO
+
+SELECT 
+    type_desc AS [File Type],
+    COUNT(*) AS [Number of Files]
+FROM sys.master_files
+WHERE database_id = DB_ID('tempdb')
+GROUP BY type_desc;
+
+-- Detailed information about TempDB files
+SELECT 
+    name AS [Logical File Name],
+    physical_name AS [Physical File Path],
+    size/128 AS [Size in MB],
+    growth/128 AS [Growth in MB],
+    is_percent_growth AS [Is Growth in Percent]
+FROM sys.master_files
+WHERE database_id = DB_ID('tempdb');
