@@ -1,0 +1,35 @@
+-- Check Availability Groups and Roles
+SELECT 
+    ag.name AS [AG Name],
+    rcs.role_desc AS [Replica Role],
+    rcs.connected_state_desc AS [Connected State],
+    ar.replica_server_name AS [Replica Server],
+    db.name AS [Database Name],
+    drs.synchronization_state_desc AS [Synchronization State],
+    drs.is_commit_participant AS [Is Commit Participant],
+    drs.is_suspended AS [Is Suspended],
+    drs.synchronization_health_desc AS [Synchronization Health]
+FROM sys.availability_groups ag
+JOIN sys.availability_replicas ar ON ag.group_id = ar.group_id
+JOIN sys.dm_hadr_availability_replica_states rcs ON ar.replica_id = rcs.replica_id
+JOIN sys.dm_hadr_database_replica_states drs ON rcs.replica_id = drs.replica_id
+JOIN sys.databases db ON drs.database_id = db.database_id
+ORDER BY ag.name, ar.replica_server_name, db.name;
+
+-- Check Databases' Synchronization Status in AG
+SELECT 
+    ag.name AS [AG Name],
+    db.database_id AS [Database ID],
+    db.name AS [Database Name],
+    drs.is_local AS [Is Local],
+    drs.is_primary_replica AS [Is Primary Replica],
+    drs.synchronization_state_desc AS [Synchronization State],
+    drs.synchronization_health_desc AS [Synchronization Health],
+    drs.log_send_queue_size AS [Log Send Queue Size],
+    drs.redo_queue_size AS [Redo Queue Size],
+    drs.last_hardened_lsn AS [Last Hardened LSN],
+    drs.last_commit_lsn AS [Last Commit LSN]
+FROM sys.availability_groups ag
+JOIN sys.dm_hadr_database_replica_states drs ON ag.group_id = drs.group_id
+JOIN sys.databases db ON drs.database_id = db.database_id
+ORDER BY ag.name, db.name;
